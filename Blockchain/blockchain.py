@@ -1,8 +1,6 @@
 import hashlib
 import time
 
-
-
 class Block:
     def __init__(self, index, timestamp, previous_hash, data):
         self.index = index
@@ -21,6 +19,17 @@ class Block:
         while self.hash[:difficulty] != '0' * difficulty:
             self.nonce += 1
             self.hash = self.calculate_hash()
+            
+    def __str__(self):
+        block_str = (
+            f"Block {self.index}:\n"
+            f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(self.timestamp))}\n"
+            f"Previous Hash: {self.previous_hash}\n"
+            f"Data: {self.data}\n"
+            f"Nonce: {self.nonce}\n"
+            f"Hash: {self.hash}\n"
+        )
+        return block_str
 
 class Blockchain:
     def __init__(self, difficulty):
@@ -57,28 +66,3 @@ class Blockchain:
             chain_str += str(block) + "\n"
         return chain_str
 
-if __name__ == "__main__":
-    blockchain = Blockchain(4)
-    blockchain.add_block(Block(1, time.time(), blockchain.get_latest_block().hash, "Tout sur le Bitcoin"))
-    blockchain.add_block(Block(2, time.time(), blockchain.get_latest_block().hash, "Sylvain Saurel"))
-    blockchain.add_block(Block(3, time.time(), blockchain.get_latest_block().hash, "https://www.toutsurlebitcoin.fr"))
-    blockchain.add_block(Block(4, time.time(), blockchain.get_latest_block().hash, "https://www.uea.edu.br"))
-
-    print(blockchain)
-
-    print("Blockchain é válida? ")
-    if not blockchain.is_blockchain_valid():
-        print("Não é válida!!!")
-    else:
-        print("Sim, é válida!!!")
-
-    # Adicionando um bloco inválido para corromper a Blockchain
-
-    """
-    blockchain.add_block(Block(15, time.time(), "aaaabbb", "Bloco inválido"))
-    print(blockchain)
-
-    print("A Blockchain continua válida? ")
-    if not blockchain.is_blockchain_valid():
-        print("Não é válida!!!")
-    """
