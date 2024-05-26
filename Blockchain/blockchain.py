@@ -7,7 +7,7 @@ class Block:
         self.timestamp = timestamp
         self.previous_hash = previous_hash
         self.data = data
-        self.nonce = 0
+        self.nonce = 77
         self.hash = self.calculate_hash()
 
     def calculate_hash(self):

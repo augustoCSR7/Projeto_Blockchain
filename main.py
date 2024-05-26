@@ -1,22 +1,35 @@
+import flet as ft
+from home_page import home_page
+from blocos_page import blocos_page
 from Blockchain.blockchain import Block, Blockchain
-from CV.main_cv import processar_imagem
-import time
 
-if __name__ == "__main__":
-    blockchain = Blockchain(2)
 
-    imagem = "Gabaritos/gabarito_augusto.jpeg"
-    pontuacao_augusto = processar_imagem(imagem)
-    print(f'Pontuação do Augusto: {pontuacao_augusto}\n')
+def main(page: ft.Page):
+    page.title = "UENEM"
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.window_width = 760
+    page.window_height = 580
+    page.window_resizable = False
+    page.window_maximizable = False
 
-    blockchain.add_block(Block(1, time.time(), blockchain.get_latest_block().hash, f"PONTUAÇÃO DO AUGUSTO = {pontuacao_augusto}"))
+    blockchain = Blockchain(4)
 
-    blockchain.add_block(Block(2, time.time(), blockchain.get_latest_block().hash, "Sylvain Saurel"))
+    def mudar_rota(rota):
+        page.views.clear()
+        if page.route == "/":
+            page.views.append(home_page(page, blockchain))
+        elif page.route == "/blocos":
+            page.views.append(blocos_page(page, blockchain))
+        page.update()
 
-    print(blockchain)
+    def voltar_view(view):
+        page.views.pop()
+        top_view = page.views[-1]
+        page.go(top_view.route)
 
-    # print("Blockchain é válida? ")
-    # if not blockchain.is_blockchain_valid():
-    #     print("Não é válida!!!")
-    # else:
-    #     print("Sim, é válida!!!")
+    page.on_route_change = mudar_rota
+    page.on_view_pop = voltar_view
+    page.go(page.route)
+
+
+ft.app(target=main)
