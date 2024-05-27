@@ -1,10 +1,8 @@
 import flet as ft
 import base64
 import cv2
-from tkinter import Tk, filedialog
-import threading
-import time
-from Blockchain.blockchain import Block, Blockchain
+from tkinter import filedialog
+import tkinter as tk
 from CV.main_cv import processar_imagem
 
 
@@ -47,39 +45,32 @@ class ImageDisplay(ft.UserControl):
 
 
 def open_file_dialog():
-    Tk().withdraw()  # Ocultar a janela principal do Tkinter
+    root = tk.Tk()
+    root.withdraw()  # Esconde a janela principal do Tkinter
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png")])
+    root.destroy()  # Destroi a janela do Tkinter após selecionar o arquivo
     return file_path
 
 
-def home_page(page: ft.Page, blockchain):
-    print(blockchain)
+gabarito = None
 
+
+def home_page(page: ft.Page, blockchain):
     def on_select_image(e):
+        global gabarito
         file_path = open_file_dialog()
         if file_path:  # Verificar se um arquivo foi selecionado
             image_display.update_image(file_path)
-            points.value, teste = processar_imagem(file_path)
+            points.value, gabarito = processar_imagem(file_path)
+
             page.update()
 
-    def on_connect_webcam(e):
-        def capture_webcam():
-            cap = cv2.VideoCapture("http://192.168.0.10:8080/video")
-            if not cap.isOpened():
-                print("Erro ao abrir a webcam.")
-                return
-
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-
-                image_display.update_image_from_frame(frame)
-                time.sleep(1 / 30)  # Atualizar a 30 FPS
-
-            cap.release()
-
-        threading.Thread(target=capture_webcam).start()
+    def abrir_gabarito_cv(e):
+        global gabarito
+        if gabarito is not None:
+            cv2.imshow('Gabarito', gabarito)
+            key = cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
     image_display = ImageDisplay()
 
@@ -88,9 +79,9 @@ def home_page(page: ft.Page, blockchain):
         on_click=on_select_image,
     )
 
-    connect_webcam_button = ft.ElevatedButton(
-        text="Conectar Webcam",
-        on_click=on_connect_webcam,
+    abrir_gabarito = ft.ElevatedButton(
+        text="Abrir Gabarito",
+        on_click=abrir_gabarito_cv,
     )
     identificador = ft.TextField(label="Identificador")
     nome = ft.TextField(label="Nome")
@@ -100,13 +91,14 @@ def home_page(page: ft.Page, blockchain):
     points.disabled = True
 
     def button_clicked():
-        if points.value == "-1":
+        if points.value == "-1" or len(identificador.value) == 0 or len(nome.value) == 0 or len(edition.value) == 0:
             pass
         else:
-            data = f"Candidato: '{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"
+            data = f"'{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"
             block = blockchain.new_block(data)
             if blockchain.is_valid_new_block(block, blockchain.get_latest_block()):
                 blockchain.add_block(block)
+                page.go("/blocos")
 
     submit_block = ft.ElevatedButton(
         text="Criar Bloco",
@@ -117,7 +109,7 @@ def home_page(page: ft.Page, blockchain):
         "/",
         [
             ft.AppBar(
-                title=ft.Text("UENEM"),
+                title=ft.Text("Início"),
                 bgcolor=ft.colors.SURFACE_VARIANT,
                 actions=[
                     ft.ElevatedButton(
@@ -147,7 +139,7 @@ def home_page(page: ft.Page, blockchain):
                             ft.Row(
                                 [
                                     select_image_button,
-                                    connect_webcam_button,
+                                    abrir_gabarito,
                                 ],
                             ),
                         ],

@@ -12,15 +12,25 @@ with open('resp.pkl', 'rb') as arquivo:
 # Respostas corretas para comparação
 respostasCorretas = ["1-A", "2-C", "3-B", "4-D", "5-A"]
 
+
 def processar_imagem(image_path):
+    # Carregar e redimensionar a imagem
     imagem = cv2.imread(image_path)
     imagem = cv2.resize(imagem, (500, 700))
+
+    # Extrair gabarito e contorno
     gabarito, bbox = exG.extrairMaiorCtn(imagem)
+
+    # Converter gabarito para escala de cinza e aplicar limiarização
     imgGray = cv2.cvtColor(gabarito, cv2.COLOR_BGR2GRAY)
     ret, imgTh = cv2.threshold(imgGray, 70, 255, cv2.THRESH_BINARY_INV)
+
+    # Desenhar retângulo em torno do contorno detectado
     cv2.rectangle(imagem, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 3)
+
     respostas = []
 
+    # Processar cada campo para extrair as respostas
     for id, vg in enumerate(campos):
         x = int(vg[0])
         y = int(vg[1])
@@ -39,6 +49,8 @@ def processar_imagem(image_path):
 
     erros = 0
     acertos = 0
+
+    # Verificar se o número de respostas coincide com o esperado
     if len(respostas) == len(respostasCorretas):
         for num, res in enumerate(respostas):
             if res == respostasCorretas[num]:
@@ -51,20 +63,19 @@ def processar_imagem(image_path):
         cv2.putText(imagem, f'PONTOS: {pontuacao}', (270, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
 
         # Exibir imagens
-        #cv2.imshow('img', imagem)
-        #cv2.imshow('Gabarito', gabarito)
-        #cv2.imshow('IMG TH', imgTh)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('img', imagem)
+        # cv2.imshow('Gabarito', gabarito)
+        # cv2.imshow('IMG TH', imgTh)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
-        return pontuacao, gabarito
+        return pontuacao, imgTh
 
     # Exibir imagens mesmo se o número de respostas não corresponder
-    cv2.imshow('img', imagem)
-    cv2.imshow('Gabarito', gabarito)
-    cv2.imshow('IMG TH', imgTh)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('img', imagem)
+    # cv2.imshow('Gabarito', gabarito)
+    # cv2.imshow('IMG TH', imgTh)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    return None
-
+    return 0, imgTh
