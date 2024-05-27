@@ -1,14 +1,23 @@
 import flet as ft
 
+
 def format_block(block):
-    return ft.Text(
-        f"Index: {block.index}\n"
+    return ft.Card(
+                                content=ft.Container(
+                                    bgcolor=ft.colors.WHITE24,
+                                    padding=6,
+                                    border_radius=ft.border_radius.all(20),
+                                    content=ft.Text(
+        f"Index: {block.get_index()}\n"
         f"Timestamp: {block.timestamp}\n"
         f"Previous Hash: {block.previous_hash}\n"
         f"Data: {block.data}\n"
         f"Nonce: {block.nonce}\n"
         f"Hash: {block.hash}\n"
-    )
+    ),
+                                )
+                            )
+
 
 def blocos_page(page: ft.Page, blockchain):
     formatted_blocks = [format_block(block) for block in blockchain.chain]

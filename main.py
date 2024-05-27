@@ -13,6 +13,8 @@ def main(page: ft.Page):
     page.window_maximizable = False
 
     blockchain = Blockchain(4)
+    if blockchain.is_blockchain_valid() and blockchain.is_first_block_valid():
+        print("Blockchain válida")
 
     def mudar_rota(rota):
         page.views.clear()

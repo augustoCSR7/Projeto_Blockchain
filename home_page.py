@@ -100,9 +100,13 @@ def home_page(page: ft.Page, blockchain):
     points.disabled = True
 
     def button_clicked():
-        blockchain.add_block(
-            Block(1, time.time(), blockchain.get_latest_block().hash,
-                  f"Candidato: '{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"))
+        if points.value == "-1":
+            pass
+        else:
+            data = f"Candidato: '{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"
+            block = blockchain.new_block(data)
+            if blockchain.is_valid_new_block(block, blockchain.get_latest_block()):
+                blockchain.add_block(block)
 
     submit_block = ft.ElevatedButton(
         text="Criar Bloco",
