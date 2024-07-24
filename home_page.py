@@ -4,7 +4,8 @@ import cv2
 from tkinter import filedialog
 import tkinter as tk
 from CV.main_cv import processar_imagem
-
+from contracts import adicionar_aluno
+from utils import matrix_to_png_buffer, pinata_send
 
 class ImageDisplay(ft.UserControl):
     def build(self):
@@ -43,26 +44,39 @@ class ImageDisplay(ft.UserControl):
         self.img.src_base64 = im_b64
         self.update()
 
-
 def open_file_dialog():
     root = tk.Tk()
     root.withdraw()  # Esconde a janela principal do Tkinter
+
+    # Função para garantir que a janela de diálogo esteja na frente
+    def bring_to_front():
+        root.update_idletasks()
+        root.attributes('-topmost', True)
+        root.after(100, lambda: root.attributes('-topmost', False))
+
+    bring_to_front()  # Chama a função para garantir que a janela esteja na frente
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png")])
     root.destroy()  # Destroi a janela do Tkinter após selecionar o arquivo
     return file_path
 
-
 gabarito = None
 
+def home_page(page: ft.Page):
+    is_select_image_open = False  # Variável para controlar o estado do diálogo
 
-def home_page(page: ft.Page, blockchain):
     def on_select_image(e):
         global gabarito
+        nonlocal is_select_image_open
+        if is_select_image_open:  # Se o diálogo estiver aberto, não faça nada
+            return
+
+        is_select_image_open = True  # Marca o início do processo de seleção
         file_path = open_file_dialog()
+        is_select_image_open = False  # Marca o fim do processo de seleção
+
         if file_path:  # Verificar se um arquivo foi selecionado
             image_display.update_image(file_path)
             points.value, gabarito = processar_imagem(file_path)
-
             page.update()
 
     def abrir_gabarito_cv(e):
@@ -91,14 +105,22 @@ def home_page(page: ft.Page, blockchain):
     points.disabled = True
 
     def button_clicked():
+        global gabarito
         if points.value == "-1" or len(identificador.value) == 0 or len(nome.value) == 0 or len(edition.value) == 0:
             pass
         else:
             data = f"'{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"
-            block = blockchain.new_block(data)
-            if blockchain.is_valid_new_block(block, blockchain.get_latest_block()):
-                blockchain.add_block(block)
+
+            png = matrix_to_png_buffer(gabarito)
+        
+            hash = pinata_send(png)
+
+            add = adicionar_aluno(int(identificador.value), nome.value, edition.value, points.value, hash)
+
+            if add:
                 page.go("/blocos")
+            else: 
+                print("Deu erro")
 
     submit_block = ft.ElevatedButton(
         text="Criar Bloco",

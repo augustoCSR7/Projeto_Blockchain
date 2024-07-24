@@ -1,6 +1,7 @@
 import cv2
 import pickle
 import CV.extrairGabarito as exG
+import numpy as np
 
 # Carregar os dados dos arquivos pickle
 with open('campos.pkl', 'rb') as arquivo:
@@ -62,20 +63,7 @@ def processar_imagem(image_path):
         cv2.putText(imagem, f'ACERTOS: {acertos}', (270, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
         cv2.putText(imagem, f'PONTOS: {pontuacao}', (270, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
 
-        # Exibir imagens
-        # cv2.imshow('img', imagem)
-        # cv2.imshow('Gabarito', gabarito)
-        # cv2.imshow('IMG TH', imgTh)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
         return pontuacao, imgTh
-
-    # Exibir imagens mesmo se o número de respostas não corresponder
-    # cv2.imshow('img', imagem)
-    # cv2.imshow('Gabarito', gabarito)
-    # cv2.imshow('IMG TH', imgTh)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
     return 0, imgTh

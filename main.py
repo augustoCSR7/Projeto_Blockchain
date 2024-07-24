@@ -7,21 +7,18 @@ from Blockchain.blockchain import Block, Blockchain
 def main(page: ft.Page):
     page.title = "UENEM"
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.window_width = 760
-    page.window_height = 580
-    page.window_resizable = False
-    page.window_maximizable = False
+    #page.window_width = 760
+    #page.window_height = 580
+    #page.window_resizable = False
+    #page.window_maximizable = False
 
-    blockchain = Blockchain(4)
-    if blockchain.is_blockchain_valid() and blockchain.is_first_block_valid():
-        print("Blockchain válida")
 
     def mudar_rota(rota):
         page.views.clear()
         if page.route == "/":
-            page.views.append(home_page(page, blockchain))
+            page.views.append(home_page(page))
         elif page.route == "/blocos":
-            page.views.append(blocos_page(page, blockchain))
+            page.views.append(blocos_page(page))
         page.update()
 
     def voltar_view(view):
@@ -34,4 +31,4 @@ def main(page: ft.Page):
     page.go(page.route)
 
 
-ft.app(target=main)
+ft.app(target=main, view=ft.AppView.WEB_BROWSER)
