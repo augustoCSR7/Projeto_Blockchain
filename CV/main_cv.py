@@ -1,14 +1,29 @@
+
+import os
 import cv2
 import pickle
 import CV.extrairGabarito as exG
-import numpy as np
+
+def carregar_pickle(nome_arquivo):
+    pasta_atual = os.path.dirname(__file__)  # Diretório onde o script Python está localizado
+    caminho_arquivo = os.path.join(pasta_atual, nome_arquivo)
+    
+    try:
+        with open(caminho_arquivo, 'rb') as arquivo:
+            return pickle.load(arquivo)
+    except FileNotFoundError:
+        print(f"Arquivo {nome_arquivo} não encontrado na pasta {pasta_atual}.")
+        return None
+    except pickle.PickleError:
+        print(f"Erro ao carregar o arquivo {nome_arquivo}.")
+        return None
 
 # Carregar os dados dos arquivos pickle
-with open('campos.pkl', 'rb') as arquivo:
-    campos = pickle.load(arquivo)
+campos = carregar_pickle('campos.pkl')
+resp = carregar_pickle('resp.pkl')
 
-with open('resp.pkl', 'rb') as arquivo:
-    resp = pickle.load(arquivo)
+if campos is None or resp is None:
+    raise SystemExit("Erro ao carregar os dados dos arquivos pickle.")
 
 # Respostas corretas para comparação
 respostasCorretas = ["1-A", "2-C", "3-B", "4-D", "5-A"]
@@ -60,9 +75,6 @@ def processar_imagem(image_path):
                 erros += 1
 
         pontuacao = int(acertos * 2)
-        cv2.putText(imagem, f'ACERTOS: {acertos}', (270, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
-        cv2.putText(imagem, f'PONTOS: {pontuacao}', (270, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
-
 
         return pontuacao, imgTh
 

@@ -1,3 +1,11 @@
+REDE = "https://sepolia.infura.io/v3/fd8bebcbece640dca2d999385d9bd3bd"
+
+CONTRATO = "0xbFa5424809d8381f0e29AD12d0055B6d8a6E9e5F"
+
+CONTA = "0xe3520D0e5Fa63A104bFfee2107aFEEC79dbb9AD6"
+
+PRIVATE_KEY = "651511d33437ecbff3ac39882bc5bdbfa6b3d5e59807413873fc8c7b1d3d40c7"
+
 ABI_CONTRATO = [
 	{
 		"inputs": [

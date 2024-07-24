@@ -54,6 +54,3 @@ def pinata_receive(cid):
     
     except Exception as e:
         print(f"Ocorreu um erro ao pedir imagem: {e}")
-
-# Criar o buffer de memória
-#png_buffer = matrix_to_png_buffer(imgTh)

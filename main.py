@@ -1,16 +1,15 @@
 import flet as ft
-from home_page import home_page
-from blocos_page import blocos_page
-from Blockchain.blockchain import Block, Blockchain
+from Pages.home_page import home_page
+from Pages.blocos_page import blocos_page
 
 
 def main(page: ft.Page):
     page.title = "UENEM"
     page.theme_mode = ft.ThemeMode.LIGHT
-    #page.window_width = 760
-    #page.window_height = 580
-    #page.window_resizable = False
-    #page.window_maximizable = False
+    page.window.width = 760
+    page.window.height = 580
+    page.window.resizable = False
+    page.window.maximizable = False
 
 
     def mudar_rota(rota):
@@ -31,4 +30,4 @@ def main(page: ft.Page):
     page.go(page.route)
 
 
-ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+ft.app(target=main)

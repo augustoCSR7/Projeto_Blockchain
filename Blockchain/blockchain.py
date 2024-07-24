@@ -1,120 +1,77 @@
-import hashlib
-import time
+from web3 import Web3
+from Blockchain.keys import ABI_CONTRATO, REDE, CONTRATO, CONTA, PRIVATE_KEY
 
+# Conectar ao provedor
+rede_url = REDE
+web3 = Web3(Web3.HTTPProvider(rede_url))
 
-class Block:
-    def __init__(self, index, timestamp, previous_hash, data):
-        self.index = index
-        self.timestamp = timestamp
-        self.previous_hash = previous_hash
-        self.data = data
-        self.nonce = 0
-        self.hash = self.calculate_hash()
+# Verificar conexão
+if not web3.is_connected():
+    print("Não foi possível conectar ao provedor.")
+    exit()
 
-    def get_index(self):
-        return self.index
+contrato_endereco = CONTRATO
+contrato_abi = ABI_CONTRATO
 
-    def get_timestamp(self):
-        return self.timestamp
+# Criar uma instância do contrato
+contrato = web3.eth.contract(address=contrato_endereco, abi=contrato_abi)
 
-    def get_hash(self):
-        return self.hash
+# Adicionar um aluno
+def adicionar_aluno(id, nome, edicao, pontos, img_hash):
+    try:
+        conta = CONTA
+        nonce = web3.eth.get_transaction_count(conta)
+        tx = contrato.functions.adicionarAluno(id, nome, edicao, pontos, img_hash).build_transaction({
+            'from': conta,
+            'gas': 2000000,
+            'gasPrice': web3.to_wei('50', 'gwei'),
+            'nonce': nonce
+        })
 
-    def get_previous_hash(self):
-        return self.previous_hash
+        # Assinar a transação
+        private_key = PRIVATE_KEY
+        signed_tx = web3.eth.account.sign_transaction(tx, private_key)
 
-    def get_data(self):
-        return self.data
+        # Enviar a transação
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        print(f"Transação enviada: {tx_hash.hex()}")
 
-    def calculate_hash(self):
-        sha = hashlib.sha256()
-        sha.update((str(self.index) + str(self.timestamp) + str(self.previous_hash) + str(self.data) + str(
-            self.nonce)).encode())
-        return sha.hexdigest()
+        # Esperar a transação ser minerada e obter o recibo
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
 
-    def proof_of_work(self, difficulty):
-        while self.hash[:difficulty] != '0' * difficulty:
-            self.nonce += 1
-            self.hash = self.calculate_hash()
+        # Verificar se a transação foi bem-sucedida
+        if tx_receipt.status == 1:
+            print("Transação concluída com sucesso!")
+            return True, tx_hash.hex()
+        else:
+            print("Transação falhou!")
+            return False, None
 
-    def __str__(self):
-        block_str = (
-            f"Block {self.index}:\n"
-            f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(self.timestamp))}\n"
-            f"Previous Hash: {self.previous_hash}\n"
-            f"Data: {self.data}\n"
-            f"Nonce: {self.nonce}\n"
-            f"Hash: {self.hash}\n"
-        )
-        return block_str
-
-
-class Blockchain:
-    def __init__(self, difficulty):
-        self.difficulty = difficulty
-        self.chain = [self.create_genesis_block()]
-
-    def create_genesis_block(self):
-        b = Block(0, time.time(), None, "Genesis Block")
-        b.proof_of_work(self.difficulty)
-        return b
-
-    def new_block(self, data):
-        latest_block = self.get_latest_block()
-        return Block(latest_block.get_index() + 1, time.time(), latest_block.get_hash(), data)
-
-    def add_block(self, block):
-        if block is not None:
-            block.proof_of_work(self.difficulty)
-            self.chain.append(block)
-
-    def get_latest_block(self):
-        return self.chain[-1]
-
-    def is_first_block_valid(self):
-        first_block = self.chain[0]
-
-        if first_block.get_index() != 0:
-            return False
-
-        if first_block.get_previous_hash() is not None:
-            return False
-
-        if first_block.get_hash() is None or first_block.get_hash() != first_block.calculate_hash():
-            return False
-
-        return True
-
-    def is_valid_new_block(self, new_block, previous_block):
-        if new_block is not None and previous_block is not None:
-            if previous_block.get_index() + 1 != new_block.get_index():
-                return False
-
-            if new_block.get_previous_hash() is None or new_block.get_previous_hash() != previous_block.get_hash():
-                return False
-
-            if new_block.get_hash() is None or new_block.get_hash() != new_block.calculate_hash():
-                return False
-
-            return True
-
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
         return False
 
-    def is_blockchain_valid(self):
-        for i in range(1, len(self.chain)):
-            current_block = self.chain[i]
-            previous_block = self.chain[i - 1]
+# Buscar alunos por ID
+def buscar_aluno_por_id(id):
+    try:
+        alunos = contrato.functions.buscarAlunoPorID(id).call()
+        return alunos
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
 
-            if current_block.hash != current_block.calculate_hash():
-                return False
+# Buscar todos os alunos de uma edição
+def buscar_alunos_por_edicao(edicao):
+    try:
+        alunos = contrato.functions.buscarAlunosPorEdicao(edicao).call()
+        return alunos
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
 
-            if current_block.previous_hash != previous_block.hash:
-                return False
+# Buscar todos os registros de alunos
+def buscar_todos_os_alunos():
+    try:
+        alunos = contrato.functions.buscarTodosOsAlunos().call()
+        return alunos
 
-        return True
-
-    def __str__(self):
-        chain_str = ""
-        for block in self.chain:
-            chain_str += str(block) + "\n"
-        return chain_str
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")

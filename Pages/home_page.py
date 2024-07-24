@@ -1,11 +1,11 @@
 import flet as ft
 import base64
 import cv2
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import tkinter as tk
 from CV.main_cv import processar_imagem
-from contracts import adicionar_aluno
-from utils import matrix_to_png_buffer, pinata_send
+from Blockchain.blockchain import adicionar_aluno
+from Blockchain.utils import matrix_to_png_buffer, pinata_send
 
 class ImageDisplay(ft.UserControl):
     def build(self):
@@ -104,23 +104,65 @@ def home_page(page: ft.Page):
     points = ft.TextField(value="-1", text_align=ft.TextAlign.RIGHT, width=100)
     points.disabled = True
 
+    def copy_to_clipboard(text):
+        root = tk.Tk()
+        root.withdraw()
+        root.clipboard_clear()
+        root.clipboard_append(text)
+        root.update()
+        root.destroy()
+
+    def show_success_message(hash):
+        def on_copy():
+            copy_to_clipboard(hash)
+            messagebox.showinfo("Copiado", "O hash da transação foi copiado para a área de transferência.")
+
+        root = tk.Tk()
+        root.title("Sucesso")
+        root.geometry("300x150")  # Define o tamanho da janela
+
+        root.attributes('-topmost', True)
+
+        label = tk.Label(root, text="Aluno adicionado com sucesso!\nClique no botão abaixo para copiar o hash da transação.", wraplength=250)
+        label.pack(pady=20)
+
+        button_frame = tk.Frame(root)  # Cria um Frame para os botões
+        button_frame.pack(pady=10)
+
+        copy_button = tk.Button(button_frame, text="Copiar Hash", command=on_copy)
+        copy_button.pack(side=tk.LEFT, padx=5)  # Adiciona o botão ao Frame
+
+        ok_button = tk.Button(button_frame, text="OK", command=root.destroy)
+        ok_button.pack(side=tk.LEFT, padx=5)  # Adiciona o botão ao Frame
+
+        root.mainloop()
+
+    def show_error_message(message):
+        root = tk.Tk()
+        root.withdraw()  # Esconde a janela principal do Tkinter
+        root.attributes('-topmost', True)
+        messagebox.showerror("Erro", message)
+        root.destroy()  # Destroi a janela do Tkinter após mostrar a mensagem
+
     def button_clicked():
         global gabarito
         if points.value == "-1" or len(identificador.value) == 0 or len(nome.value) == 0 or len(edition.value) == 0:
-            pass
+            show_error_message("Por favor, preencha todos os campos e selecione uma imagem.")
         else:
-            data = f"'{identificador.value}', '{nome.value}', '{edition.value}', {points.value}"
+            try:
+                png = matrix_to_png_buffer(gabarito)
+                hash = pinata_send(png)
+                #add, tx_hash = adicionar_aluno(int(identificador.value), nome.value, edition.value, points.value, hash)
+                add = True
+                tx_hash = "Hash Exemplo"
+                if add:
+                    show_success_message(tx_hash)
+                    page.go("/blocos")
+                else:
+                    show_error_message("Não foi possível adicionar o aluno.")
+            except Exception as e:
+                show_error_message(f"Erro inesperado: {str(e)}")
 
-            png = matrix_to_png_buffer(gabarito)
-        
-            hash = pinata_send(png)
-
-            add = adicionar_aluno(int(identificador.value), nome.value, edition.value, points.value, hash)
-
-            if add:
-                page.go("/blocos")
-            else: 
-                print("Deu erro")
 
     submit_block = ft.ElevatedButton(
         text="Criar Bloco",

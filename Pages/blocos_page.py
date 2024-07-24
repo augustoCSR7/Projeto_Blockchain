@@ -1,7 +1,6 @@
 import flet as ft
-from datetime import datetime
-from contracts import buscar_todos_os_alunos
-from utils import pinata_receive
+from Blockchain.blockchain import buscar_todos_os_alunos, buscar_aluno_por_id, buscar_alunos_por_edicao
+from Blockchain.utils import pinata_receive
 
 def format_block(aluno):
     return ft.Card(
@@ -9,7 +8,7 @@ def format_block(aluno):
             bgcolor=ft.colors.WHITE,
             padding=16,
             border_radius=ft.border_radius.all(16),
-            border=ft.border.all(1, color=ft.colors.BLACK12),  # Usando cor básica para a borda
+            border=ft.border.all(1, color=ft.colors.BLACK12),
             content=ft.Row(
                 controls=[
                     ft.Container(
@@ -17,10 +16,9 @@ def format_block(aluno):
                             src_base64=pinata_receive(aluno[4]),
                             width=150,
                             height=150,
-                            #fit=ft.ImageFit.COVER,
                             border_radius=ft.border_radius.all(8)
                         ),
-                        margin=ft.margin.only(right=12)  # Ajuste da margem com um contêiner
+                        margin=ft.margin.only(right=12)
                     ),
                     ft.Column(
                         controls=[
@@ -45,11 +43,6 @@ def format_block(aluno):
                                 size=16,
                                 color=ft.colors.BLACK
                             ),
-                            # ft.Text(
-                            #     f"Hash: {aluno[4]}",
-                            #     size=14,
-                            #     color=ft.colors.GRAY
-                            # ),
                         ],
                         spacing=4
                     )
@@ -58,16 +51,49 @@ def format_block(aluno):
             )
         ),
         margin=ft.margin.only(bottom=16),
-        width=600  # Definindo uma largura fixa em pixels
+        width=600
     )
 
 def blocos_page(page: ft.Page):
-    alunos = buscar_todos_os_alunos()
+    def buscar_por_id(e):
+        id = int(input_id.value)
+        alunos = buscar_aluno_por_id(id)
+        atualizar_lista(alunos)
 
-    # Formatar os alunos em blocos
+    def buscar_por_edicao(e):
+        edicao = input_edicao.value
+        alunos = buscar_alunos_por_edicao(edicao)
+        atualizar_lista(alunos)
+
+    def buscar_todos(e):
+        alunos = buscar_todos_os_alunos()
+        atualizar_lista(alunos)
+
+    def atualizar_lista(alunos):
+        formatted_blocks = [format_block(aluno) for aluno in alunos]
+        lista_view.controls = formatted_blocks
+        page.update()
+
+    input_id = ft.TextField(label="Buscar por ID", width=200)
+    btn_buscar_id = ft.ElevatedButton("Buscar", on_click=buscar_por_id)
+
+    input_edicao = ft.TextField(label="Buscar por Edição", width=200)
+    btn_buscar_edicao = ft.ElevatedButton("Buscar", on_click=buscar_por_edicao)
+
+    btn_buscar_todos = ft.ElevatedButton("Buscar Todos", on_click=buscar_todos)
+
+    # Buscar todos os alunos inicialmente
+    alunos = buscar_todos_os_alunos()
     formatted_blocks = [format_block(aluno) for aluno in alunos]
 
-    # Definir o conteúdo da página
+    lista_view = ft.ListView(
+        expand=True,
+        spacing=16,
+        controls=formatted_blocks,
+        padding=16,
+        auto_scroll=True
+    )
+
     view_content = [
         ft.AppBar(
             title=ft.Text("Blocos"),
@@ -79,11 +105,22 @@ def blocos_page(page: ft.Page):
                 ),
             ],
         ),
-        ft.ListView(
-            expand=True,
+        ft.Column(
+            controls=[
+                ft.Row(
+                    controls=[input_id, btn_buscar_id, input_edicao, btn_buscar_edicao],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=16
+                ),
+                ft.Row(
+                    controls=[btn_buscar_todos],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=16
+                ),
+                lista_view
+            ],
             spacing=16,
-            controls=formatted_blocks,
-            padding=16
+            expand=True
         )
     ]
 
